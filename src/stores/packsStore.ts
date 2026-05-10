@@ -63,7 +63,7 @@ interface PacksState {
   updateDefaultPack: (id: string, data: Partial<Pack>) => void;
   loadPublicPacks: () => Promise<void>;
   loadUserLikes: () => Promise<void>;
-  importPublicPack: (pack: Pack) => Pack;
+  importPublicPack: (pack: Pack) => Promise<Pack>;
   likePublicPack: (packId: string) => Promise<void>;
   usePublicPack: (packId: string) => void;
   incrementUses: (packId: string) => void;
@@ -228,12 +228,17 @@ export const usePacksStore = create<PacksState>((set) => ({
         saveGuestPacks(customPacks);
       }
 
+      // Si es un pack importado, tambien incrementar el uso del pack original en Supabase
+      if (pack.source_pack_id) {
+        incrementPackUses(pack.source_pack_id);
+      }
+
       return { packs: updated };
     });
   },
 
-  importPublicPack: (pack) => {
-    incrementPackDownloads(pack.id);
+  importPublicPack: async (pack) => {
+    await incrementPackDownloads(pack.id);
     const imported: Pack = {
       ...pack,
       id: `imported-${Date.now()}`,
@@ -242,6 +247,7 @@ export const usePacksStore = create<PacksState>((set) => ({
       likes_count: 0,
       uses_count: 0,
       downloads_count: 0,
+      source_pack_id: pack.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

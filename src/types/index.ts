@@ -28,6 +28,7 @@ export interface Pack {
   likes_count: number;
   uses_count: number;
   downloads_count: number;
+  source_pack_id?: string;
   created_at?: string;
   updated_at?: string;
 }

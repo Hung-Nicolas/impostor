@@ -66,7 +66,7 @@ export function PacksScreen() {
     if (importingPackId === pack.id) return;
     setImportingPackId(pack.id);
     try {
-      importPublicPack(pack);
+      await importPublicPack(pack);
       showToast(`"${pack.name}" importado`, 'success');
       setViewingPack(null);
     } finally {
