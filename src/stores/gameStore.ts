@@ -89,7 +89,7 @@ function fisherYatesShuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateHint(word: string, packCategories: string[]): string {
+function generateHint(word: string, packCategories: string[]): string | undefined {
   const hintMap: Record<string, string> = {
     gato: 'Animal', perro: 'Animal', pajaro: 'Animal', pez: 'Animal',
     pizza: 'Comida', hamburguesa: 'Comida', sushi: 'Comida', pasta: 'Comida',
@@ -107,8 +107,7 @@ function generateHint(word: string, packCategories: string[]): string {
   const lower = word.toLowerCase();
   if (hintMap[lower]) return hintMap[lower];
   if (packCategories.length > 0) return packCategories[Math.floor(Math.random() * packCategories.length)];
-  const generic = ['Objeto', 'Concepto', 'Cosa', 'Idea', 'Elemento'];
-  return generic[Math.floor(Math.random() * generic.length)];
+  return undefined;
 }
 
 const initialState = {

@@ -161,12 +161,12 @@ export function RevealScreen() {
                       >
                         {player.word}
                       </h1>
-                      {player.impostorHint && (
-                        <div className="flex items-center justify-center gap-1.5 mt-3 relative">
-                          <Lightbulb size={12} className="text-[#FFB800]" />
-                          <span className="text-sm text-[#FFB800]">Pista: {player.impostorHint}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-center gap-1.5 mt-3 relative">
+                        <Lightbulb size={12} className="text-[#FFB800]" />
+                        <span className="text-sm text-[#FFB800]">
+                          Pista: {player.impostorHint || 'Sin pistas'}
+                        </span>
+                      </div>
                       <p className="text-xs text-[#8A8A9A] mt-3 relative">
                         Los demas tienen otra palabra
                       </p>
