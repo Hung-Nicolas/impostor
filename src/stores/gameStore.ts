@@ -111,7 +111,7 @@ function generateHint(word: string, packCategories: string[]): string | undefine
   return undefined;
 }
 
-const initialState = {
+export const initialGameState = {
   phase: 'idle' as GamePhase,
   gameMode: 'normal' as GameMode,
   impostorCount: 1,
@@ -133,7 +133,7 @@ const initialState = {
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
-      ...initialState,
+      ...initialGameState,
 
   // === Player Management ===
   addPlayer: (name) => {
@@ -534,7 +534,7 @@ export const useGameStore = create<GameState>()(
   // === Reset ===
   resetGame: () =>
     set((state) => ({
-      ...initialState,
+      ...initialGameState,
       gameMode: state.gameMode,
       impostorCount: state.gameMode === 'normal' ? state.impostorCount : 1,
       selectedPackIds: state.selectedPackIds,
@@ -553,7 +553,7 @@ export const useGameStore = create<GameState>()(
 
   resetKeepConfig: () =>
     set((state) => ({
-      ...initialState,
+      ...initialGameState,
       gameMode: state.gameMode,
       impostorCount: state.gameMode === 'normal' ? state.impostorCount : 1,
       selectedPackIds: state.selectedPackIds,

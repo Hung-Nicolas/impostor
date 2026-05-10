@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
+import { useGameStore, initialGameState } from './gameStore';
+import { useSettingsStore } from './settingsStore';
+import { usePacksStore } from './packsStore';
 
 interface User {
   id: string;
@@ -105,6 +108,31 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
+    // Clear session-related local data
+    localStorage.removeItem('impostor-game-storage');
+    localStorage.removeItem('impostor_settings');
+    localStorage.removeItem('impostor_guest_packs');
+    localStorage.removeItem('impostor_guest_id');
+    // Reset stores to initial state
+    useGameStore.setState({
+      ...initialGameState,
+      players: [],
+      nextPlayerId: 0,
+      userWordStats: {},
+    });
+    useSettingsStore.setState({
+      vibrationEnabled: true,
+      vibrationSupported: typeof navigator !== 'undefined' && 'vibrate' in navigator,
+      animationsEnabled: true,
+    });
+    usePacksStore.setState({
+      packs: usePacksStore.getState().packs.filter((p) => p.id.startsWith('default-')),
+      selectedPackId: 'default-animales',
+      isLoading: false,
+      publicPacks: [],
+      isPublicPacksLoading: false,
+      likedPackIds: new Set(),
+    });
     set({ user: null, isAuthenticated: false, isAdmin: false, loginModalOpen: false });
   },
 }));
