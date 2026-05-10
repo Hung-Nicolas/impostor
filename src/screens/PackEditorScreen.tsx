@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Save, Plus, X, Trash2, Pencil, GripVertical, Copy } from 'lucide-react';
+import { ChevronLeft, Save, Plus, X, Trash2, Pencil, GripVertical, Copy, Loader2 } from 'lucide-react';
 import { usePacksStore } from '@/stores/packsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { createPublicPack, updatePublicPack } from '@/lib/gameApi';
@@ -31,6 +31,7 @@ export function PackEditorScreen() {
   const [editingWordId, setEditingWordId] = useState<string | null>(null);
   const [editWordValue, setEditWordValue] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (existing) {
@@ -73,6 +74,7 @@ export function PackEditorScreen() {
   };
 
   const handleSave = async () => {
+    if (isSaving) return;
     if (!name.trim()) { showToast('Ingresa un nombre', 'error'); return; }
     const valid = words.filter((w) => w.word.trim());
     if (valid.length < 1) { showToast('Agrega al menos 1 palabra', 'error'); return; }
@@ -101,37 +103,42 @@ export function PackEditorScreen() {
       return;
     }
 
-    if (isDefaultPack && isAdmin) {
-      updateDefaultPack(id!, data);
-      showToast('Pack predeterminado actualizado', 'success');
-    } else if (isMyPublicPack && existing) {
-      const ok = await updatePublicPack(id!, data);
-      if (ok) {
-        // Also update local copy if exists
-        if (existingLocal) updatePack(id!, data);
-        showToast('Paquete publico actualizado', 'success');
+    setIsSaving(true);
+    try {
+      if (isDefaultPack && isAdmin) {
+        updateDefaultPack(id!, data);
+        showToast('Pack predeterminado actualizado', 'success');
+      } else if (isMyPublicPack && existing) {
+        const ok = await updatePublicPack(id!, data);
+        if (ok) {
+          // Also update local copy if exists
+          if (existingLocal) updatePack(id!, data);
+          showToast('Paquete publico actualizado', 'success');
+        } else {
+          showToast('Error al actualizar en Supabase', 'error');
+          return;
+        }
+      } else if (isEdit && existing) {
+        updatePack(id!, data);
+        showToast('Paquete actualizado', 'success');
+      } else if (isPublic && isAuthenticated) {
+        const result = await createPublicPack(data);
+        if (result) {
+          // Also save locally so it appears in "Tus paquetes"
+          createPack(data);
+          showToast('Paquete publicado', 'success');
+        } else {
+          showToast('Error al publicar. Revisa la consola (F12) para mas detalles.', 'error');
+          return; // No navegar si fallo
+        }
       } else {
-        showToast('Error al actualizar en Supabase', 'error');
-        return;
-      }
-    } else if (isEdit && existing) {
-      updatePack(id!, data);
-      showToast('Paquete actualizado', 'success');
-    } else if (isPublic && isAuthenticated) {
-      const result = await createPublicPack(data);
-      if (result) {
-        // Also save locally so it appears in "Tus paquetes"
         createPack(data);
-        showToast('Paquete publicado', 'success');
-      } else {
-        showToast('Error al publicar. Revisa la consola (F12) para mas detalles.', 'error');
-        return; // No navegar si fallo
+        showToast('Paquete creado', 'success');
       }
-    } else {
-      createPack(data);
-      showToast('Paquete creado', 'success');
+      navigate('/packs');
+    } finally {
+      setIsSaving(false);
     }
-    navigate('/packs');
   };
 
   return (
@@ -316,12 +323,19 @@ export function PackEditorScreen() {
       {/* Save button */}
       <div className="shrink-0 px-5 pb-6 pt-2">
         <motion.button
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: isSaving ? 1 : 0.97 }}
           onClick={handleSave}
-          className="w-full bg-gradient-to-r from-[#00E5CC] to-[#00C4B0] text-[#0A0A0F] font-bold text-lg rounded-2xl py-4 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(0,229,204,0.25)]"
+          disabled={isSaving}
+          className={`w-full font-bold text-lg rounded-2xl py-4 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(0,229,204,0.25)] transition-opacity ${isSaving ? 'opacity-70 cursor-not-allowed' : ''} bg-gradient-to-r from-[#00E5CC] to-[#00C4B0] text-[#0A0A0F]`}
         >
-          {isImported ? <Copy size={20} /> : <Save size={20} />}
-          {isImported ? 'HACER COPIA' : 'GUARDAR'}
+          {isSaving ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : isImported ? (
+            <Copy size={20} />
+          ) : (
+            <Save size={20} />
+          )}
+          {isSaving ? 'GUARDANDO...' : isImported ? 'HACER COPIA' : 'GUARDAR'}
         </motion.button>
       </div>
     </div>
