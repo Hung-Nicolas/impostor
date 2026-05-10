@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Flame, Skull, Home, ArrowRight, Crown, X, Target, Frown } from 'lucide-react';
+import { Trophy, Flame, Skull, Home, ArrowRight, Crown, X, Target, Frown, RotateCcw, AlertTriangle } from 'lucide-react';
 import { QuitGameButton } from '@/components/QuitGameButton';
 import { useGameStore } from '@/stores/gameStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -11,11 +11,12 @@ import { useConfetti, ConfettiCanvas } from '@/components/ConfettiCanvas';
 
 export function ResultsScreen() {
   const navigate = useNavigate();
-  const { results, players, resetKeepConfig, resetGame } = useGameStore();
+  const { results, players, resetKeepConfig, resetGame, resetScores } = useGameStore();
   const { animationsEnabled } = useSettingsStore();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { canvasRef, trigger } = useConfetti();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   // Trigger confetti on crewmate win
   useEffect(() => {
     if (!results) return;
@@ -63,6 +64,12 @@ export function ResultsScreen() {
     e.stopPropagation();
     resetGame();
     navigate('/');
+  };
+
+  const handleResetScores = () => {
+    resetScores();
+    setConfirmReset(false);
+    setShowLeaderboard(false);
   };
 
   return (
@@ -246,7 +253,7 @@ export function ResultsScreen() {
                   })}
               </div>
 
-              <div className="mt-5 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+              <div className="mt-5 pt-4 border-t border-[rgba(255,255,255,0.06)] space-y-3">
                 <p className="text-xs text-[#5A5A6A] text-center">
                   {results.winner === 'crewmates'
                     ? 'Ganaron los inocentes'
@@ -254,6 +261,52 @@ export function ResultsScreen() {
                       ? 'Ganaron los impostores'
                       : 'El caos gano'}
                 </p>
+                <button
+                  onClick={() => setConfirmReset(true)}
+                  className="w-full py-3 rounded-xl border border-[rgba(239,68,68,0.2)] text-[#EF4444] text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+                >
+                  <RotateCcw size={14} /> Resetear clasificacion
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirm reset modal */}
+      <AnimatePresence>
+        {confirmReset && (
+          <motion.div
+            className="fixed inset-0 z-[300] flex items-center justify-center px-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setConfirmReset(false)} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-[#14141C] border border-[rgba(239,68,68,0.2)] rounded-3xl p-6 w-full max-w-[300px]"
+            >
+              <div className="w-12 h-12 rounded-full bg-[rgba(239,68,68,0.1)] flex items-center justify-center mx-auto mb-3">
+                <AlertTriangle size={22} className="text-[#EF4444]" />
+              </div>
+              <h3 className="text-lg font-bold text-[#F0F0F5] text-center mb-1">Resetear clasificacion</h3>
+              <p className="text-sm text-[#8A8A9A] text-center mb-5">Se borraran todos los puntos de los jugadores. Esta accion no se puede deshacer.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="flex-1 py-3 rounded-xl border border-[rgba(255,255,255,0.08)] text-[#8A8A9A] font-semibold text-sm active:scale-[0.97]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleResetScores}
+                  className="flex-1 py-3 rounded-xl bg-[#EF4444] text-white font-bold text-sm active:scale-[0.97]"
+                >
+                  Resetear
+                </button>
               </div>
             </motion.div>
           </motion.div>

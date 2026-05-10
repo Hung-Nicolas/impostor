@@ -56,6 +56,7 @@ interface GameState {
   addScores: (winner: 'crewmates' | 'impostors' | 'chaos') => void;
   resetGame: () => void;
   resetKeepConfig: () => void;
+  resetScores: () => void;
 
   // Getters
   getActivePlayers: () => Player[];
@@ -568,6 +569,11 @@ export const useGameStore = create<GameState>()(
       })),
       nextPlayerId: state.players.length,
       phase: 'setup',
+    })),
+
+  resetScores: () =>
+    set((state) => ({
+      players: state.players.map((p) => ({ ...p, score: 0 })),
     })),
 
       // === Getters ===
