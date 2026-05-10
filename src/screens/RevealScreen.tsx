@@ -159,7 +159,7 @@ export function RevealScreen() {
                         className="text-4xl font-extrabold text-[#F0F0F5] mb-1 relative"
                         style={{ textShadow: '0 0 25px rgba(255,77,138,0.25)' }}
                       >
-                        {player.word}
+                        {player.word || '???'}
                       </h1>
                       <div className="flex items-center justify-center gap-1.5 mt-3 relative">
                         <Lightbulb size={12} className="text-[#FFB800]" />
@@ -168,7 +168,7 @@ export function RevealScreen() {
                         </span>
                       </div>
                       <p className="text-xs text-[#8A8A9A] mt-3 relative">
-                        Los demas tienen otra palabra
+                        {player.word ? 'Los demas tienen otra palabra' : 'No tenés palabra. Inventá una.'}
                       </p>
                     </>
                   ) : (

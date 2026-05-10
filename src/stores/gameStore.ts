@@ -309,13 +309,14 @@ export const useGameStore = create<GameState>()(
       if (!p.active) return { ...p, isImpostor: false, word: '', impostorHint: undefined, eliminated: false };
       const activeIdx = activePlayers.findIndex((ap) => ap.id === p.id);
       const isImpostor = impostorIndices.has(activeIdx);
+      const hint = isImpostor && state.giveImpostorHint
+        ? generateHint(roundWord, packCategories)
+        : undefined;
       return {
         ...p,
         isImpostor,
-        word: isImpostor ? impostorWord : roundWord,
-        impostorHint: isImpostor && state.giveImpostorHint
-          ? generateHint(roundWord, packCategories)
-          : undefined,
+        word: isImpostor ? (hint ? impostorWord : '') : roundWord,
+        impostorHint: hint,
         eliminated: false,
       };
     });
