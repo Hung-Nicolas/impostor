@@ -92,7 +92,7 @@ export function SettingsModal() {
                   <User size={16} className="text-[#5A5A6A]" />
                   <p className="text-sm text-[#8A8A9A]">Creador: <span className="text-[#F0F0F5] font-medium">Hung Nicolas</span></p>
                 </div>
-                <p className="text-xs text-[#5A5A6A]">Version v1.0</p>
+                <p className="text-xs text-[#5A5A6A]">Version v1.1</p>
               </div>
             </motion.div>
           </motion.div>
