@@ -13,6 +13,7 @@ export function AccusationScreen() {
 
   const [confirming, setConfirming] = useState<number | null>(null);
   const [eliminating, setEliminating] = useState<{ name: string; wasImpostor: boolean } | null>(null);
+  const [isVoting, setIsVoting] = useState(false);
 
   // Set phase to voting when this screen mounts
   useEffect(() => {
@@ -24,7 +25,8 @@ export function AccusationScreen() {
   const handleAccuse = (votedIdx: number) => setConfirming(votedIdx);
 
   const confirmAccuse = () => {
-    if (confirming === null) return;
+    if (confirming === null || isVoting) return;
+    setIsVoting(true);
     const votedIdx = confirming;
     setConfirming(null);
 
@@ -39,6 +41,7 @@ export function AccusationScreen() {
       setEliminating({ name: res.eliminatedName || '', wasImpostor: false });
       setTimeout(() => {
         setEliminating(null);
+        setIsVoting(false);
         nextRound();
         startDiscussion();
         navigate('/discussion');
@@ -158,9 +161,10 @@ export function AccusationScreen() {
                 </button>
                 <button
                   onClick={confirmAccuse}
-                  className="flex-[1.5] py-5 rounded-xl bg-gradient-to-r from-[#FF4D8A] to-[#EC4899] text-white font-extrabold active:scale-[0.97] transition-transform text-base shadow-[0_4px_24px_rgba(255,77,138,0.35)]"
+                  disabled={isVoting}
+                  className={`flex-[1.5] py-5 rounded-xl bg-gradient-to-r from-[#FF4D8A] to-[#EC4899] text-white font-extrabold transition-transform text-base shadow-[0_4px_24px_rgba(255,77,138,0.35)] ${isVoting ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}`}
                 >
-                  ACUSAR
+                  {isVoting ? '...' : 'ACUSAR'}
                 </button>
               </div>
             </motion.div>

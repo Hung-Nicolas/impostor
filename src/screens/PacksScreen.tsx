@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, Package, ChevronLeft, BookOpen, Globe, Heart, Download, X, Sparkles, Play, Type } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, ChevronLeft, BookOpen, Globe, Heart, Download, X, Sparkles, Play, Type, Loader2 } from 'lucide-react';
 import { usePacksStore } from '@/stores/packsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { deletePublicPack } from '@/lib/gameApi';
@@ -16,6 +16,9 @@ export function PacksScreen() {
   const [deletingName, setDeletingName] = useState('');
   const [deletingType, setDeletingType] = useState<'local' | 'public'>('local');
   const [viewingPack, setViewingPack] = useState<Pack | null>(null);
+  const [likingPackId, setLikingPackId] = useState<string | null>(null);
+  const [importingPackId, setImportingPackId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadPublicPacks();
@@ -32,35 +35,52 @@ export function PacksScreen() {
   };
 
   const confirmDeleteAction = async () => {
-    if (!confirmDelete) return;
-    if (deletingType === 'public') {
-      const ok = await deletePublicPack(confirmDelete);
-      if (ok) {
-        showToast('Paquete eliminado', 'success');
-        loadPublicPacks();
+    if (!confirmDelete || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      if (deletingType === 'public') {
+        const ok = await deletePublicPack(confirmDelete);
+        if (ok) {
+          showToast('Paquete eliminado', 'success');
+          loadPublicPacks();
+        } else {
+          showToast('Error al eliminar', 'error');
+        }
       } else {
-        showToast('Error al eliminar', 'error');
+        deletePack(confirmDelete);
+        showToast('Paquete eliminado', 'success');
       }
-    } else {
-      deletePack(confirmDelete);
-      showToast('Paquete eliminado', 'success');
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(null);
     }
-    setConfirmDelete(null);
   };
 
-  const handleImport = (pack: Pack) => {
-    importPublicPack(pack);
-    showToast(`"${pack.name}" importado`, 'success');
-    setViewingPack(null);
+  const handleImport = async (pack: Pack) => {
+    if (importingPackId === pack.id) return;
+    setImportingPackId(pack.id);
+    try {
+      importPublicPack(pack);
+      showToast(`"${pack.name}" importado`, 'success');
+      setViewingPack(null);
+    } finally {
+      setImportingPackId(null);
+    }
   };
 
-  const handleLike = async (packId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleLike = async (packId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!isAuthenticated) {
       showToast('Inicia sesion para dar like', 'error');
       return;
     }
-    await likePublicPack(packId);
+    if (likingPackId === packId) return;
+    setLikingPackId(packId);
+    try {
+      await likePublicPack(packId);
+    } finally {
+      setLikingPackId(null);
+    }
   };
 
   return (
@@ -196,9 +216,13 @@ export function PacksScreen() {
                       role="button"
                       className={`flex items-center gap-1 text-xs transition-colors ${
                         likedPackIds.has(pack.id) ? 'text-[#FF4D8A]' : 'text-[#8A8A9A] hover:text-[#FF4D8A]'
-                      }`}
+                      } ${likingPackId === pack.id ? 'opacity-50 pointer-events-none' : ''}`}
                     >
-                      <Heart size={13} fill={likedPackIds.has(pack.id) ? '#FF4D8A' : 'none'} />
+                      {likingPackId === pack.id ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Heart size={13} fill={likedPackIds.has(pack.id) ? '#FF4D8A' : 'none'} />
+                      )}
                       {pack.likes_count}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-[#5A5A6A]">
@@ -324,21 +348,32 @@ export function PacksScreen() {
                 {publicPacks.some((p) => p.id === viewingPack.id) ? (
                   <div className="flex gap-3">
                     <button
-                      onClick={() => handleLike(viewingPack.id, { stopPropagation: () => {} } as any)}
-                      className={`flex-1 py-3.5 rounded-xl border font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${
+                      onClick={() => handleLike(viewingPack.id)}
+                      disabled={likingPackId === viewingPack.id}
+                      className={`flex-1 py-3.5 rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-transform ${
                         likedPackIds.has(viewingPack.id)
                           ? 'bg-[rgba(255,77,138,0.1)] border-[rgba(255,77,138,0.3)] text-[#FF4D8A]'
                           : 'border-[rgba(255,77,138,0.2)] text-[#FF4D8A]'
-                      }`}
+                      } ${likingPackId === viewingPack.id ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}`}
                     >
-                      <Heart size={16} fill={likedPackIds.has(viewingPack.id) ? '#FF4D8A' : 'none'} />
+                      {likingPackId === viewingPack.id ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Heart size={16} fill={likedPackIds.has(viewingPack.id) ? '#FF4D8A' : 'none'} />
+                      )}
                       {likedPackIds.has(viewingPack.id) ? 'Liked' : 'Like'}
                     </button>
                     <button
                       onClick={() => handleImport(viewingPack)}
-                      className="flex-[2] py-3.5 rounded-xl bg-gradient-to-r from-[#00E5CC] to-[#00C4B0] text-[#0A0A0F] font-extrabold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-transform shadow-[0_4px_16px_rgba(0,229,204,0.25)]"
+                      disabled={importingPackId === viewingPack.id}
+                      className={`flex-[2] py-3.5 rounded-xl bg-gradient-to-r from-[#00E5CC] to-[#00C4B0] text-[#0A0A0F] font-extrabold text-sm flex items-center justify-center gap-2 transition-transform shadow-[0_4px_16px_rgba(0,229,204,0.25)] ${importingPackId === viewingPack.id ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}`}
                     >
-                      <Download size={16} /> Importar pack
+                      {importingPackId === viewingPack.id ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Download size={16} />
+                      )}
+                      {importingPackId === viewingPack.id ? 'Importando...' : 'Importar pack'}
                     </button>
                   </div>
                 ) : !viewingPack.id.startsWith('default-') ? (
@@ -386,9 +421,10 @@ export function PacksScreen() {
                 </button>
                 <button
                   onClick={confirmDeleteAction}
-                  className="flex-1 py-3 rounded-xl bg-[#EF4444] text-white font-bold text-sm active:scale-[0.97]"
+                  disabled={isDeleting}
+                  className={`flex-1 py-3 rounded-xl bg-[#EF4444] text-white font-bold text-sm transition-transform ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}`}
                 >
-                  Eliminar
+                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
                 </button>
               </div>
             </motion.div>
