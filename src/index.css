@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #0A0A0F;
+    --bg-secondary: #14141C;
+    --bg-tertiary: #1E1E2A;
+    --bg-overlay: rgba(10, 10, 15, 0.85);
+    --text-primary: #F0F0F5;
+    --text-secondary: #8A8A9A;
+    --text-muted: #5A5A6A;
+    --accent-cyan: #00E5CC;
+    --accent-cyan-dim: rgba(0, 229, 204, 0.15);
+    --accent-pink: #FF4D8A;
+    --accent-pink-dim: rgba(255, 77, 138, 0.15);
+    --accent-amber: #FFB800;
+    --accent-amber-dim: rgba(255, 184, 0, 0.15);
+    --accent-purple: #8B5CF6;
+    --accent-purple-dim: rgba(139, 92, 246, 0.15);
+    --success: #22C55E;
+    --error: #EF4444;
+    --warning: #F59E0B;
+    --border-default: rgba(255, 255, 255, 0.06);
+    --border-active: rgba(0, 229, 204, 0.3);
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overscroll-behavior: contain;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  input, textarea {
+    font-size: 16px !important;
+  }
+}
+
+@layer utilities {
+  .font-mono-game {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 30px rgba(0, 229, 204, 0.2);
+  }
+
+  .glow-pink {
+    box-shadow: 0 0 30px rgba(255, 77, 138, 0.2);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+  }
+
+  .text-glow-cyan {
+    text-shadow: 0 0 20px rgba(0, 229, 204, 0.4);
+  }
+
+  .text-glow-pink {
+    text-shadow: 0 0 20px rgba(255, 77, 138, 0.4);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 229, 204, 0.1); }
+  50% { text-shadow: 0 0 25px rgba(0, 229, 204, 0.3); }
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
