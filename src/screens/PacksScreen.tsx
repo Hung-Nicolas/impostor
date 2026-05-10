@@ -16,6 +16,7 @@ export function PacksScreen() {
   const [deletingName, setDeletingName] = useState('');
   const [deletingType, setDeletingType] = useState<'local' | 'public'>('local');
   const [viewingPack, setViewingPack] = useState<Pack | null>(null);
+  const [showAllWords, setShowAllWords] = useState(false);
   const [likingPackId, setLikingPackId] = useState<string | null>(null);
   const [importingPackId, setImportingPackId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -54,6 +55,11 @@ export function PacksScreen() {
       setIsDeleting(false);
       setConfirmDelete(null);
     }
+  };
+
+  const openPack = (pack: Pack) => {
+    setShowAllWords(false);
+    setViewingPack(pack);
   };
 
   const handleImport = async (pack: Pack) => {
@@ -115,7 +121,7 @@ export function PacksScreen() {
                 className="flex items-center gap-3 bg-[#14141C] border border-[rgba(255,255,255,0.04)] rounded-xl p-3"
               >
                 <button
-                  onClick={() => setViewingPack(pack)}
+                  onClick={() => openPack(pack)}
                   className="flex items-center gap-3 flex-1 min-w-0 text-left"
                 >
                   <div className="w-9 h-9 rounded-lg bg-[rgba(0,229,204,0.1)] flex items-center justify-center flex-shrink-0">
@@ -148,7 +154,7 @@ export function PacksScreen() {
                   className="flex items-center gap-3 bg-[#14141C] border border-[rgba(255,255,255,0.06)] rounded-xl p-3"
                 >
                   <button
-                    onClick={() => setViewingPack(pack)}
+                    onClick={() => openPack(pack)}
                     className="flex items-center gap-3 flex-1 min-w-0 text-left"
                   >
                     <div className="w-9 h-9 rounded-lg bg-[rgba(139,92,246,0.1)] flex items-center justify-center flex-shrink-0">
@@ -198,7 +204,7 @@ export function PacksScreen() {
                 <motion.button
                   key={pack.id}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setViewingPack(pack)}
+                  onClick={() => openPack(pack)}
                   className="w-full flex items-center gap-3 bg-[#14141C] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(0,229,204,0.2)] rounded-xl p-3 text-left transition-all"
                 >
                   <div className="w-9 h-9 rounded-lg bg-[rgba(0,229,204,0.08)] flex items-center justify-center flex-shrink-0">
@@ -325,7 +331,7 @@ export function PacksScreen() {
 
               {/* Words list */}
               <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
-                {viewingPack.words.map((word, i) => (
+                {(showAllWords ? viewingPack.words : viewingPack.words.slice(0, 3)).map((word, i) => (
                   <div key={word.id || i} className="bg-[#1E1E2A] border border-[rgba(255,255,255,0.04)] rounded-xl p-3">
                     <p className="text-sm font-bold text-[#F0F0F5] mb-1">{word.word}</p>
                     {word.hints && word.hints.length > 0 ? (
@@ -341,6 +347,14 @@ export function PacksScreen() {
                     )}
                   </div>
                 ))}
+                {viewingPack.words.length > 3 && (
+                  <button
+                    onClick={() => setShowAllWords(!showAllWords)}
+                    className="w-full py-2.5 text-xs font-semibold text-[#00E5CC] bg-[rgba(0,229,204,0.06)] border border-[rgba(0,229,204,0.12)] rounded-xl active:scale-[0.97] transition-transform"
+                  >
+                    {showAllWords ? 'Ver menos' : `Mostrar todo (${viewingPack.words.length})`}
+                  </button>
+                )}
               </div>
 
               {/* Actions */}
